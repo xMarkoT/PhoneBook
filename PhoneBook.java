@@ -100,15 +100,8 @@ public class PhoneBook {
 			return "+" + phone.substring(2);
 		}
 		
-//		return (p && phone.length() == 12 && phone.startsWith("359") && OPERATOR_CODES.contains(phone.substring(3, 5))
-//				&& SPECIAL_CHAR.contains(phone.charAt(5)))
-//				|| (!p && phone.length() == 10 && '0' == phone.charAt(0)
-//						&& OPERATOR_CODES.contains(phone.substring(1, 3)) && SPECIAL_CHAR.contains(phone.charAt(3)))
-//				|| (!p && phone.length() == 14 && phone.startsWith("00") && "359".equals(phone.substring(2, 5))
-//						&& OPERATOR_CODES.contains(phone.substring(5, 7)) && SPECIAL_CHAR.contains(phone.charAt(7)));
 		return null;
 	}
-	
 
 	public void parseRawFile(String rawFile, String parsedFile) {
 		BufferedReader br = null;
@@ -223,10 +216,6 @@ public class PhoneBook {
 			phoneToCall.put(number, phoneToCall.get(number) + 1);
 		}
 	}
-
-	
-
-	
 
 	public String getRawFile() {
 		return rawFile;
