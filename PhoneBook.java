@@ -44,7 +44,13 @@ public class PhoneBook {
 	}
 
 	public void addNumber(String parsedFile, String name, String number) {
+		String phoneNumber = validatePhone(number);
+		if(phoneNumber == null){
+			System.out.println("Invalid phone number");
+			return;
+		}
 		phoneBookDataOperatoins(parsedFile, name, number, false);
+		
 	}
 	
 	public void printSortedMapByName() {
@@ -168,11 +174,11 @@ public class PhoneBook {
 				sb.append(line);
 				sb.append("\r\n");
 			}
-			if (removeRecord == false && validatePhone(number) != null) {
-				sb.append(name + SEPPARATOR + validatePhone(number));
+			if (removeRecord == false) {
+				sb.append(name + SEPPARATOR + number);
 				sb.append("\r\n");
 				nameToPhone.put(name, number);
-				phoneToCall.put(validatePhone(number), 0);
+				phoneToCall.put(number, 0);
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
