@@ -35,17 +35,6 @@ public class PhoneBook {
 	private String rawFilePath;
 	private String parsedFilePath;
 	
-	public static void main(String[] args) {
-		String rawFilePath = "C:\\Users\\marko.trajcheski\\Desktop\\PhoneBook\\imenik.txt";
-		String parsedFilePath = "C:\\Users\\marko.trajcheski\\Desktop\\PhoneBook\\parsedImenik.txt";
-		PhoneBook pb = new PhoneBook(rawFilePath, parsedFilePath);
-		pb.parseRawFile();
-		
-//		pb.addPhoneRecordToFile("QWEQWE", "00359885111111");
-		
-		pb.removePhoneRecord("MARKO");
-	}
-
 	public PhoneBook(String rawFilePath, String parsedFilePath) {
 		this.rawFilePath = rawFilePath;
 		this.parsedFilePath = parsedFilePath;
