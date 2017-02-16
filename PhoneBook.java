@@ -3,6 +3,7 @@ package com.phonebook.main;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -23,7 +24,7 @@ import java.util.Set;
  */
 
 public class PhoneBook {
-	
+
 	private final String SEPPARATOR = ", ";
 	private final List<String> OPERATOR_CODES = Arrays.asList("87", "88", "89");
 	private final List<Character> SPECIAL_CHAR = Arrays.asList('2', '3', '4', '5', '6', '7', '8', '9');
@@ -31,28 +32,18 @@ public class PhoneBook {
 	private Map<String, String> nameToPhone = new HashMap<>();
 	private Map<String, Integer> phoneToCall = new HashMap<>();
 
-	private static String rawFile;
-	private static String parsedFile;
-	
+	private String rawFilePath;
+	private String parsedFilePath;
+
+	public PhoneBook(String rawFilePath, String parsedFilePath) {
+		this.rawFilePath = rawFilePath;
+		this.parsedFilePath = parsedFilePath;
+	}
 
 	public String getPhoneNumberByName(String name) {
 		return nameToPhone.get(name);
 	}
 
-	public void removeNumber(String parsedFile, String name) {
-		phoneBookDataOperatoins(parsedFile, name, null, true);
-	}
-
-	public void addNumber(String parsedFile, String name, String number) {
-		String phoneNumber = validatePhone(number);
-		if(phoneNumber == null){
-			System.out.println("Invalid phone number");
-			return;
-		}
-		phoneBookDataOperatoins(parsedFile, name, number, false);
-		
-	}
-	
 	public void printSortedMapByName() {
 		List<String> keys = new ArrayList<>(nameToPhone.keySet());
 		keys.sort(new Comparator<String>() {
@@ -66,7 +57,7 @@ public class PhoneBook {
 			System.out.println(key + ", " + nameToPhone.get(key));
 		}
 	}
-	
+
 	public void printCallStatistic() {
 		Set<Entry<String, Integer>> set = phoneToCall.entrySet();
 		List<Entry<String, Integer>> list = new ArrayList<Entry<String, Integer>>(set);
@@ -85,137 +76,107 @@ public class PhoneBook {
 			limit--;
 		}
 	}
-	
+
 	private String validatePhone(String phone) {
 		boolean p = phone.toString().startsWith("+");
-		phone = phone .replaceAll("\\D+", "");
-		
-		if(p && phone.length() == 12 && phone.startsWith("359") && OPERATOR_CODES.contains(phone.substring(3, 5))
-				&& SPECIAL_CHAR.contains(phone.charAt(5))){
-			return phone;
+		phone = phone.replaceAll("\\D+", "");
+
+		if (p && phone.length() == 12 && phone.startsWith("359") && OPERATOR_CODES.contains(phone.substring(3, 5))
+				&& SPECIAL_CHAR.contains(phone.charAt(5))) {
+			return "+" + phone;
 		}
-		
-		if(!p && phone.length() == 10 && '0' == phone.charAt(0)
-				&& OPERATOR_CODES.contains(phone.substring(1, 3)) && SPECIAL_CHAR.contains(phone.charAt(3))){
-			
-			return "+359"+phone.substring(1);
+
+		if (!p && phone.length() == 10 && '0' == phone.charAt(0) && OPERATOR_CODES.contains(phone.substring(1, 3))
+				&& SPECIAL_CHAR.contains(phone.charAt(3))) {
+
+			return "+359" + phone.substring(1);
 		}
-		
-		if(!p && phone.length() == 14 && phone.startsWith("00") && "359".equals(phone.substring(2, 5))
-				&& OPERATOR_CODES.contains(phone.substring(5, 7)) && SPECIAL_CHAR.contains(phone.charAt(7))){
+
+		if (!p && phone.length() == 14 && phone.startsWith("00") && "359".equals(phone.substring(2, 5))
+				&& OPERATOR_CODES.contains(phone.substring(5, 7)) && SPECIAL_CHAR.contains(phone.charAt(7))) {
 			return "+" + phone.substring(2);
 		}
-		
+
 		return null;
 	}
 
-	public void parseRawFile(String rawFile, String parsedFile) {
-		BufferedReader br = null;
-		BufferedWriter bw = null;
-		try {
-			br = new BufferedReader(new FileReader(new File(rawFile)));
-			bw = new BufferedWriter(new FileWriter(new File(parsedFile)));
+	public void parseRawFile() {
+		File rawfile = new File(rawFilePath);
+		File parsedFile = new File(parsedFilePath);
+		try (BufferedReader br = new BufferedReader(new FileReader(rawfile));
+				BufferedWriter bw = new BufferedWriter(new FileWriter(parsedFile));) {
 			String line = null;
 			while ((line = br.readLine()) != null) {
 				String[] split = line.split(SEPPARATOR);
 				if (split.length > 1) {
 					String name = split[0];
 					String phone = split[1];
-					if (validatePhone(phone) != null) {
-						nameToPhone.put(name, validatePhone(phone));
-						phoneToCall.put(validatePhone(phone), 0);
-						bw.write(name + SEPPARATOR + phone);
-						bw.newLine();
+					String phoneNumber = validatePhone(phone);
+					if (phoneNumber != null) {
+						nameToPhone.put(name, phoneNumber);
+						phoneToCall.put(phoneNumber, 0);
+						bw.write(name + SEPPARATOR + phoneNumber + "\r\n");
 						bw.flush();
 					}
 				}
 			}
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
-		} finally {
-			if (br != null) {
-				try {
-					br.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
-			if (bw != null) {
-				try {
-					bw.flush();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-				try {
-					bw.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
 		}
 	}
 
-	private void phoneBookDataOperatoins(String parsedFile, String name, String number, boolean removeRecord) {
+	private void addPhoneRecordToFile(String name, String number) {
+		File file = new File(parsedFilePath);
 
-		BufferedReader br = null;
-		BufferedWriter bw = null;
+		try (BufferedWriter bw = new BufferedWriter(new FileWriter(file, true))) {
+			if (!file.exists()) {
+				file.createNewFile();
+			}
+			String phoneNumber = validatePhone(number);
+			if (phoneNumber != null) {
+				nameToPhone.put(name, number);
+				phoneToCall.put(number, 0);
+				bw.write(name + SEPPARATOR + number + "\r\n");
+				bw.flush();
+			}
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private void removePhoneRecord(String name) {
 		StringBuilder sb = new StringBuilder();
-
-		try {
-			br = new BufferedReader(new FileReader(new File(parsedFile)));
+		try (BufferedReader br = new BufferedReader(new FileReader(new File(parsedFilePath)))) {
 			String line = null;
 			while ((line = br.readLine()) != null) {
 				String[] split = line.split(SEPPARATOR);
-				if (removeRecord && split[0].equalsIgnoreCase(name)) {
+				if (!split[0].equalsIgnoreCase(name)) {
 					nameToPhone.remove(name);
 					phoneToCall.remove(split[1]);
-					continue;
+					sb.append(line);
+					sb.append("\r\n");
 				}
-				sb.append(line);
-				sb.append("\r\n");
-			}
-			if (removeRecord == false) {
-				sb.append(name + SEPPARATOR + number);
-				sb.append("\r\n");
-				nameToPhone.put(name, number);
-				phoneToCall.put(number, 0);
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
-		} finally {
-			if (br != null) {
-				try {
-					br.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
 		}
 
-		try {
-			bw = new BufferedWriter(new FileWriter(new File(parsedFile), false));
+		try (BufferedWriter bw = new BufferedWriter(new FileWriter(new File(parsedFilePath), false));) {
 			bw.write(sb.toString());
+			bw.flush();
 		} catch (IOException e) {
 			e.printStackTrace();
-		} finally {
-			if (bw != null) {
-				try {
-					bw.flush();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-				try {
-					bw.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
 		}
+
 	}
 
 	/**
-	 * Should be called from other class which manages calls, where a method will exist which 
-	 * checks the validity of the caller and the direction, then if it is outgoing call it will call this method
+	 * Should be called from other class which manages calls, where a method
+	 * will exist which checks the validity of the caller and the direction,
+	 * then if it is outgoing call it will call this method
 	 */
 	public void outgoingCall(String number) {
 		if (phoneToCall.containsKey(number)) {
@@ -224,18 +185,18 @@ public class PhoneBook {
 	}
 
 	public String getRawFile() {
-		return rawFile;
+		return rawFilePath;
 	}
 
 	public void setRawFile(String rawFile) {
-		this.rawFile = rawFile;
+		this.rawFilePath = rawFile;
 	}
 
 	public String getParsedFile() {
-		return parsedFile;
+		return parsedFilePath;
 	}
 
 	public void setParsedFile(String parsedFile) {
-		this.parsedFile = parsedFile;
+		this.parsedFilePath = parsedFile;
 	}
 }
