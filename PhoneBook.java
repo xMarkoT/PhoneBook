@@ -34,6 +34,17 @@ public class PhoneBook {
 
 	private String rawFilePath;
 	private String parsedFilePath;
+	
+	public static void main(String[] args) {
+		String rawFilePath = "C:\\Users\\marko.trajcheski\\Desktop\\PhoneBook\\imenik.txt";
+		String parsedFilePath = "C:\\Users\\marko.trajcheski\\Desktop\\PhoneBook\\parsedImenik.txt";
+		PhoneBook pb = new PhoneBook(rawFilePath, parsedFilePath);
+		pb.parseRawFile();
+		
+//		pb.addPhoneRecordToFile("QWEQWE", "00359885111111");
+		
+		pb.removePhoneRecord("MARKO");
+	}
 
 	public PhoneBook(String rawFilePath, String parsedFilePath) {
 		this.rawFilePath = rawFilePath;
@@ -136,11 +147,11 @@ public class PhoneBook {
 			}
 			String phoneNumber = validatePhone(number);
 			if (phoneNumber != null) {
-				nameToPhone.put(name, number);
-				phoneToCall.put(number, 0);
-				bw.write(name + SEPPARATOR + number + "\r\n");
-				bw.flush();
+				nameToPhone.put(name, phoneNumber);
+				phoneToCall.put(phoneNumber, 0);
+				bw.write(name + SEPPARATOR + phoneNumber + "\r\n");
 			}
+			bw.flush();
 
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -149,28 +160,30 @@ public class PhoneBook {
 
 	private void removePhoneRecord(String name) {
 		StringBuilder sb = new StringBuilder();
-		try (BufferedReader br = new BufferedReader(new FileReader(new File(parsedFilePath)))) {
+		try (BufferedReader br = new BufferedReader(new FileReader(new File(parsedFilePath)))
+				) {
 			String line = null;
 			while ((line = br.readLine()) != null) {
 				String[] split = line.split(SEPPARATOR);
-				if (!split[0].equalsIgnoreCase(name)) {
+				if (split[0].equalsIgnoreCase(name)) {
 					nameToPhone.remove(name);
 					phoneToCall.remove(split[1]);
-					sb.append(line);
-					sb.append("\r\n");
+					continue;
 				}
+				sb.append(line);
+				sb.append("\r\n");
 			}
+			
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-
-		try (BufferedWriter bw = new BufferedWriter(new FileWriter(new File(parsedFilePath), false));) {
+		
+		try(BufferedWriter bw = new BufferedWriter(new FileWriter(new File(parsedFilePath), false))){
 			bw.write(sb.toString());
 			bw.flush();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-
 	}
 
 	/**
