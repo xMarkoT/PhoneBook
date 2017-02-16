@@ -35,32 +35,6 @@ public class PhoneBook {
 	private String rawFilePath;
 	private String parsedFilePath;
 
-	public static void main(String[] args) {
-		String rawFilePath = "C:\\Users\\marko.trajcheski\\Desktop\\PhoneBook\\imenik.txt";
-		String parsedFilePath = "C:\\Users\\marko.trajcheski\\Desktop\\PhoneBook\\parsedImenik.txt";
-		PhoneBook pb = new PhoneBook(rawFilePath, parsedFilePath);
-
-		pb.parseRawFile();
-
-		// pb.printSortedMapByName();
-
-		pb.addPhoneRecordToFile("REC1", "0888111111");
-		pb.addPhoneRecordToFile("REC2", "00359888111111");
-		pb.addPhoneRecordToFile("REC3", "+359888111111");
-		pb.addPhoneRecordToFile("REC4", "0881111111");
-		pb.addPhoneRecordToFile("REC5", "+355888111111");
-		pb.addPhoneRecordToFile("REC6", "0888111111");
-		pb.addPhoneRecordToFile("REC7", "0888111111");
-		pb.addPhoneRecordToFile("REC8", "0888111111");
-
-		// pb.printSortedMapByName();
-
-		pb.removePhoneRecord("REC8");
-		pb.removePhoneRecord("REC1");
-
-		pb.printSortedMapByName();
-	}
-
 	public PhoneBook(String rawFilePath, String parsedFilePath) {
 		this.rawFilePath = rawFilePath;
 		this.parsedFilePath = parsedFilePath;
